@@ -7,8 +7,10 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 
 public final class AnonGW {
+
     private static final String HOSTNAME = "127.0.0.1";
     private static final int PORT = 8080;
 
@@ -16,7 +18,20 @@ public final class AnonGW {
 
     private ServerSocket socket;
 
+    private String targetServerAdress;
+
+    private int anonPort;
+
+    private List<String> overlayPeersAdresses;
+
     public AnonGW() {
+
+    }
+
+    public AnonGW(final String targetServerAddress, final int anonPort, final List<String> overlayPeersAdresses) {
+        this.targetServerAdress = targetServerAddress;
+        this.anonPort = anonPort;
+        this.overlayPeersAdresses = overlayPeersAdresses;
     }
 
     @SuppressWarnings("checkstyle:magicnumber")
@@ -45,4 +60,5 @@ public final class AnonGW {
             id++;
         }
     }
+
 }

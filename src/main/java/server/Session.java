@@ -17,13 +17,13 @@ public class Session implements Runnable {
     private BufferedReader in;
     private PrintWriter out;
 
-    public Session(int id, Socket socket) {
+    public Session(final int id, final Socket socket) {
         this.id = id;
         this.socket = socket;
     }
 
     @Override
-    public void run() {
+    public final void run() {
         log.info("Session " + this.id + " established on " + this.socket.getRemoteSocketAddress());
 
         try {
