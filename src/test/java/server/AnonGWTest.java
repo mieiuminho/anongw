@@ -10,17 +10,7 @@ public class AnonGWTest {
 
     @Before
     public void setUp() {
-        this.model = new AnonGW(42);
+        this.model = new AnonGW();
     }
 
-    @Test
-    public void getX() {
-        assertEquals(42, this.model.getX());
-    }
-
-    @Test
-    public void setX() {
-        this.model.setX(90);
-        assertEquals(90, this.model.getX());
-    }
 }

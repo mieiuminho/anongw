@@ -1,23 +1,36 @@
+import com.beust.jcommander.JCommander;
 import server.AnonGW;
+import util.Args;
 import util.Parser;
 
+import java.util.List;
+
 public final class App {
+
     private App() {
 
     }
 
     public static void main(final String[] args) {
-        new App().start();
+
+        Args arguments = new Args();
+
+        JCommander.newBuilder().addObject(arguments).build().parse(args);
+
+        new App().start(arguments.getTargetServerAddress(), arguments.getAnonPort(),
+                arguments.getOverlayPeersAddresses());
+
     }
 
-    public void start() {
+    public void start(final String targetServerAddress, final int anonPort, final List<String> overlayPeersAddresses) {
         this.welcome();
-        new AnonGW().startUp();
+        new AnonGW(targetServerAddress, anonPort, overlayPeersAddresses).startUp();
     }
 
     public void welcome() {
-        for(String line: Parser.readFile("src/main/resources/art/logo.ascii")) {
+        for (String line : Parser.readFile("src/main/resources/art/logo.ascii")) {
             System.out.println(line);
         }
     }
+
 }
