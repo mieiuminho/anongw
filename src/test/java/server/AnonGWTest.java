@@ -1,9 +1,8 @@
 package server;
 
-import org.junit.Before;
-import org.junit.Test;
-
 import static org.junit.Assert.*;
+
+import org.junit.Before;
 
 public class AnonGWTest {
     private AnonGW model;
@@ -12,5 +11,4 @@ public class AnonGWTest {
     public void setUp() {
         this.model = new AnonGW();
     }
-
 }

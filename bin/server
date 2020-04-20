@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+mvn clean compile exec:java -Dexec.args="--port ${1:-8080} --target-server ${2:-127.0.0.1}"

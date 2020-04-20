@@ -1,14 +1,12 @@
 import com.beust.jcommander.JCommander;
+import java.util.List;
 import server.AnonGW;
 import util.Args;
 import util.Parser;
 
-import java.util.List;
-
 public final class App {
 
     private App() {
-
     }
 
     public static void main(final String[] args) {
@@ -19,7 +17,6 @@ public final class App {
 
         new App().start(arguments.getTargetServerAddress(), arguments.getAnonPort(),
                 arguments.getOverlayPeersAddresses());
-
     }
 
     public void start(final String targetServerAddress, final int anonPort, final List<String> overlayPeersAddresses) {
@@ -32,5 +29,4 @@ public final class App {
             System.out.println(line);
         }
     }
-
 }

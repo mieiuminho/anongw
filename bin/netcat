@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+echo "
+HTTP/1.1 200 OK
+Content-Length: 51
+Connection: close
+Content-Type: text/html
+
+
+<html><body><h1>It works, mates!</h1></body></html>
+" | netcat -v -l -p 9000

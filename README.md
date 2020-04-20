@@ -34,16 +34,23 @@ The following software is required to be installed on your system:
 
 ### :hammer: Development
 
-Compile and start the server in a clean build.
+Start a server instance. The `<port>` argument is optional and by default the
+server will start at `:8080`.
 
 ```
-mvn clean compile exec:java
+bin/server [<port>]
 ```
 
-For testing purposes, you can connect to it through `netcat`.
+You can use `netcat` as the target server.
 
 ```
-netcat 127.0.0.1 8080
+netcat -v -l -p <port>
+```
+
+For testing purposes, you can connect to it through also with `netcat`.
+
+```
+netcat 127.0.0.1 <port>
 ```
 
 Running tests.
@@ -55,14 +62,19 @@ mvn test
 Format the code accordingly to common guide lines.
 
 ```
-mvn formatter:format
+bin/format
 ```
 
 Lint your code with _checkstyle_.
 
 ```
-mvn checkstyle:check
+bin/lint
 ```
+
+### :microscope: Testing
+
+For a quick testing check run in one terminal tab `bin/netcat` and in another
+tab `bin/server`. Then access `localhost:8080` with a browser.
 
 ### :package: Deployment
 

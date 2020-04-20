@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+mvn formatter:format
+
+shfmt -l -w -i 2 .
+
+# clang-format -i

@@ -10,28 +10,25 @@ import java.net.Socket;
 import java.util.List;
 
 public final class AnonGW {
-
-    private static final String HOSTNAME = "127.0.0.1";
-    private static final int PORT = 8080;
-
     private static Logger log = LogManager.getLogger(AnonGW.class);
 
+    private static final String HOSTNAME = "127.0.0.1";
+
+    private int port;
     private ServerSocket socket;
 
-    private String targetServerAdress;
+    private String targetServerAddress;
+    private Socket target;
 
-    private int anonPort;
-
-    private List<String> overlayPeersAdresses;
+    private List<String> overlayPeersAddresses;
 
     public AnonGW() {
-
     }
 
-    public AnonGW(final String targetServerAddress, final int anonPort, final List<String> overlayPeersAdresses) {
-        this.targetServerAdress = targetServerAddress;
-        this.anonPort = anonPort;
-        this.overlayPeersAdresses = overlayPeersAdresses;
+    public AnonGW(final String targetServerAddress, final int port, final List<String> overlayPeersAddresses) {
+        this.targetServerAddress = targetServerAddress;
+        this.port = port;
+        this.overlayPeersAddresses = overlayPeersAddresses;
     }
 
     @SuppressWarnings("checkstyle:magicnumber")
@@ -40,19 +37,23 @@ public final class AnonGW {
 
         try {
             this.socket = new ServerSocket();
-            this.socket.bind(new InetSocketAddress(HOSTNAME, PORT));
+            this.socket.bind(new InetSocketAddress(HOSTNAME, this.port));
             log.info("Server is up at " + this.socket.getLocalSocketAddress());
+            this.target = new Socket(targetServerAddress, 9000); // changing port temporally for testing purposes
+                                                                 // (because we cannot use the same port for anongw and
+                                                                 // target server in same network) it should be `port`
+            log.info("Connected to target server at " + this.target.getLocalSocketAddress());
         } catch (IOException e) {
             log.fatal(e.getMessage());
             e.printStackTrace();
         }
 
-        int id = 0;
+        int id = 1;
         while (true) {
             try {
                 log.info("Waiting for connection...");
-                Socket clientServer = this.socket.accept();
-                new Thread(new Session(id, clientServer)).start();
+                Socket client = this.socket.accept();
+                new Thread(new Session(id, client, this.target)).start();
                 log.debug("Session " + id + " accepted connection");
             } catch (IOException e) {
                 log.error(e.getMessage());
@@ -60,5 +61,4 @@ public final class AnonGW {
             id++;
         }
     }
-
 }
