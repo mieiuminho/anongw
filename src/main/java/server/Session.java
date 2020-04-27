@@ -2,7 +2,7 @@ package server;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import transport.Connection;
+import transport.Tunnel;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,7 +31,8 @@ public class Session implements Runnable {
 
     @Override
     public final void run() {
-        log.info("Session " + this.id + " established on " + this.client.getRemoteSocketAddress());
+        log.info("Session " + this.id + " established with client on " + this.client.getRemoteSocketAddress());
+        log.info("Session " + this.id + " established with target server on " + this.target.getRemoteSocketAddress());
 
         try {
             this.clientIn = new BufferedReader(new InputStreamReader(this.client.getInputStream()));
@@ -40,8 +41,8 @@ public class Session implements Runnable {
             this.targetIn = new BufferedReader(new InputStreamReader(this.target.getInputStream()));
             this.targetOut = new PrintWriter(this.target.getOutputStream(), true);
 
-            new Thread(new Connection(this.id, this.clientIn, this.targetOut)).start();
-            new Thread(new Connection(this.id, this.targetIn, this.clientOut)).start();
+            new Thread(new Tunnel(this.id, this.clientIn, this.targetOut)).start();
+            new Thread(new Tunnel(this.id, this.targetIn, this.clientOut)).start();
 
         } catch (IOException e) {
             log.error(e.getMessage());

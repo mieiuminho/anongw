@@ -7,14 +7,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-public final class Connection implements Runnable {
-    private static Logger log = LogManager.getLogger(Connection.class);
+public final class Tunnel implements Runnable {
+    private static Logger log = LogManager.getLogger(Tunnel.class);
 
     private int id;
     private BufferedReader in;
     private PrintWriter out;
 
-    public Connection(final int id, final BufferedReader in, final PrintWriter out) {
+    public Tunnel(final int id, final BufferedReader in, final PrintWriter out) {
         this.id = id;
         this.in = in;
         this.out = out;

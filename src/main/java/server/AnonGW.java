@@ -12,13 +12,11 @@ import java.util.List;
 public final class AnonGW {
     private static Logger log = LogManager.getLogger(AnonGW.class);
 
-    private static final String HOSTNAME = "127.0.0.1";
+    private static final String HOSTNAME = "0.0.0.0";
 
     private int port;
     private ServerSocket socket;
-
     private String targetServerAddress;
-    private Socket target;
 
     private List<String> overlayPeersAddresses;
 
@@ -39,10 +37,6 @@ public final class AnonGW {
             this.socket = new ServerSocket();
             this.socket.bind(new InetSocketAddress(HOSTNAME, this.port));
             log.info("Server is up at " + this.socket.getLocalSocketAddress());
-            this.target = new Socket(targetServerAddress, 9000); // changing port temporally for testing purposes
-                                                                 // (because we cannot use the same port for anongw and
-                                                                 // target server in same network) it should be `port`
-            log.info("Connected to target server at " + this.target.getLocalSocketAddress());
         } catch (IOException e) {
             log.fatal(e.getMessage());
             e.printStackTrace();
@@ -53,8 +47,8 @@ public final class AnonGW {
             try {
                 log.info("Waiting for connection...");
                 Socket client = this.socket.accept();
-                new Thread(new Session(id, client, this.target)).start();
-                log.debug("Session " + id + " accepted connection");
+                Socket target = new Socket(targetServerAddress, port);
+                new Thread(new Session(id, client, target)).start();
             } catch (IOException e) {
                 log.error(e.getMessage());
             }

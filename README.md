@@ -38,7 +38,7 @@ Start a server instance. The `<port>` argument is optional and by default the
 server will start at `:8080`.
 
 ```
-bin/server [<port>]
+bin/server [<host> <port>]
 ```
 
 You can use `netcat` as the target server.
@@ -73,8 +73,14 @@ bin/lint
 
 ### :microscope: Testing
 
-For a quick testing check run in one terminal tab `bin/netcat` and in another
-tab `bin/server`. Then access `localhost:8080` with a browser.
+The testing should happen the following [topology](resources/topology.imn). You
+need to setup a target server and as many AnonGW as you wish.
+
+![Topology](resources/images/network.png){ with=300px }
+
+The target server is prepared to run in anywhere. However, by default the AnonGW
+expect it to be on `Serv1`. You can change this default behavior by providing
+the IP address as the first argument to `bin/server`.
 
 ### :package: Deployment
 
@@ -89,8 +95,13 @@ mvn package
 The recommended Integrated Development Environment (IDE) is [IntelliJ
 IDEA](https://www.jetbrains.com/idea/).
 
+For emulating a network use the Common Open Research Emulator (CORE). Setup
+instructions for setting it up on a Virtual Machine with Ubuntu 20.04 are
+available on our wiki [here](https://gitlab.com/mieiuminho/CC/anongw/-/wikis/Setup-CORE).
+
 ## :busts_in_silhouette: Team
 
 | [![Hugo][hugo-pic]][hugo] | [![Nelson][nelson-pic]][nelson] | [![Pedro][pedro-pic]][pedro] |
 | :-----------------------: | :-----------------------------: | :--------------------------: |
 |   [Hugo Carvalho][hugo]   |    [Nelson Estevão][nelson]     |    [Pedro Ribeiro][pedro]    |
+
