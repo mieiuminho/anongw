@@ -41,21 +41,23 @@ public class Session implements Runnable {
             this.targetIn = new BufferedReader(new InputStreamReader(this.target.getInputStream()));
             this.targetOut = new PrintWriter(this.target.getOutputStream(), true);
 
-            new Thread(new Tunnel(this.id, this.clientIn, this.targetOut)).start();
-            new Thread(new Tunnel(this.id, this.targetIn, this.clientOut)).start();
+            Thread[] threads = {//
+                    new Thread(new Tunnel(this.id, this.clientIn, this.targetOut)), // requests
+                    new Thread(new Tunnel(this.id, this.targetIn, this.clientOut)), // responses
+            };
 
-        } catch (IOException e) {
+            for (Thread thread : threads) {
+                thread.start();
+            }
+
+            for (Thread thread : threads) {
+                thread.join();
+            }
+
+        } catch (IOException | InterruptedException e) {
             log.error(e.getMessage());
         }
 
-        // try {
-        // this.client.shutdownOutput();
-        // this.client.shutdownInput();
-        // this.client.close();
-        //
-        // log.info("Session " + this.id + " finished on " + this.client.getRemoteSocketAddress());
-        // } catch (IOException e) {
-        // log.error(e.getMessage());
-        // }
+        log.info("Session " + this.id + " finished on " + this.client.getRemoteSocketAddress());
     }
 }
