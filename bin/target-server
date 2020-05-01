@@ -3,4 +3,4 @@
 . scripts/helpers.sh
 
 python3 -m http.server --directory resources/server \
-  --bind "${1:-$(get_ip)}" "${1:-8080}"
+  --bind "${1:-$(get_ip)}" "${2:-8080}"
