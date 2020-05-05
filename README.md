@@ -34,29 +34,30 @@ The following software is required to be installed on your system:
 
 ### :hammer: Development
 
-Start a server instance. The `<port>` argument is optional and by default the
-server will start at `:8080`.
+Start a AnonGW instance. You need to pass a list of peers because it's different
+for each instance.
 
 ```
-bin/server [<host> <port>]
+bin/anongw "<peers...>" [<port> <host> <udp> <ip>]
 ```
 
-You can use `netcat` as the target server.
+You can use `netcat` as the target server or use our simple script to setup a
+HTTP server.
 
 ```
-netcat -v -l -p <port>
+bin/server [<port> <host>]
 ```
 
-For testing purposes, you can connect to it through also with `netcat`.
+For testing purposes, you can connect to it through also with `curl`.
 
 ```
-netcat 127.0.0.1 <port>
+curl -i -X GET <AnonGW IP>:<port>
 ```
 
 Running tests.
 
 ```
-mvn test
+bin/test
 ```
 
 Format the code accordingly to common guide lines.
@@ -73,14 +74,15 @@ bin/lint
 
 ### :microscope: Testing
 
-The testing should happen the following [topology](resources/topology.imn). You
-need to setup a target server and as many AnonGW as you wish.
+For testing purposes use the CORE emulator with [this](resources/topology.imn)
+topology in order to create a suitable test scenario.
 
-![Topology](resources/images/network.png){ with=300px }
+![Topology](resources/images/network.png)
 
-The target server is prepared to run in anywhere. However, by default the AnonGW
-expect it to be on `Serv1`. You can change this default behavior by providing
-the IP address as the first argument to `bin/server`.
+Run the HTTP server on `Serv1@10.3.3.1`. Setup at least 3 instances of AnonGW on
+3 different nodes. The recommendation is to setup one on `Serv3@10.3.3.3`,
+another on `Serv2@10.3.3.2` and one on `Zeus@10.4.4.2`. The client should 
+connect from `Portatil1@10.1.1.1` to any one of them.
 
 ### :package: Deployment
 
@@ -104,4 +106,3 @@ available on our wiki [here](https://gitlab.com/mieiuminho/CC/anongw/-/wikis/Set
 | [![Hugo][hugo-pic]][hugo] | [![Nelson][nelson-pic]][nelson] | [![Pedro][pedro-pic]][pedro] |
 | :-----------------------: | :-----------------------------: | :--------------------------: |
 |   [Hugo Carvalho][hugo]   |    [Nelson Estevão][nelson]     |    [Pedro Ribeiro][pedro]    |
-

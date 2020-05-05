@@ -2,5 +2,5 @@
 
 . scripts/helpers.sh
 
-mvn clean compile exec:java \
-  -Dexec.args="--target-server ${1:-10.3.3.1} --port ${2:-8080}"
+python3 -m http.server --directory resources/server \
+  "${1:-8080}" --bind "${2:-$(get_ip)}"

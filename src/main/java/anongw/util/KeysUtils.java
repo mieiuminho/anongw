@@ -1,4 +1,4 @@
-package util;
+package anongw.util;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -11,20 +11,23 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Collection;
 
-@SuppressWarnings({"checkstyle:MagicNumber", "checkstyle:HideUtilityClassConstructor"})
-public class KeysUtils {
+public final class KeysUtils {
 
     private static KeyPairGenerator keyGen;
-    private static int keysize = 2048;
+    @SuppressWarnings("checkstyle:MagicNumber")
+    private static final int KEY_SIZE = 2048;
 
     static {
         try {
             SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
             keyGen = KeyPairGenerator.getInstance("RSA");
-            keyGen.initialize(keysize, random);
+            keyGen.initialize(KEY_SIZE, random);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+    }
+
+    private KeysUtils() {
     }
 
     private static void toFile(final String name, final String extension, final Object obj) throws IOException {
