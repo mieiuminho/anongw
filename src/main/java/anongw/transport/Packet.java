@@ -6,7 +6,12 @@ import anongw.util.Encoder;
 import java.io.IOException;
 import java.io.Serializable;
 
-public final class Packet implements Serializable {
+public final class Packet implements Serializable, Comparable<Packet> {
+
+    @Override
+    public int compareTo(final Packet packet) {
+        return Integer.compare(this.getPart(), packet.getPart());
+    }
 
     public enum TYPE implements Serializable {
         REQUEST, RESPONSE

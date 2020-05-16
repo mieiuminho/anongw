@@ -13,7 +13,6 @@ import java.net.Socket;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public final class Distributor implements Runnable {
     private static Logger log = LogManager.getLogger(Distributor.class);
@@ -27,13 +26,13 @@ public final class Distributor implements Runnable {
     private BlockingQueue<byte[]> packets;
 
     // gateways -> sessions -> [parts] (pacotes destinados ao target server)
-    private Map<String, Map<Integer, BlockingQueue<Packet>>> requests;
+    private Map<String, Map<Integer, PacketsQueue>> requests;
 
     // sessions -> [parts] (pacotes de volta ao cliente)
-    private Map<Integer, BlockingQueue<Packet>> responses;
+    private Map<Integer, PacketsQueue> responses;
 
-    public Distributor(final BlockingQueue<byte[]> packets, final Map<Integer, BlockingQueue<Packet>> responses,
-            final int tcp, final String destination, final int udp, final String address) {
+    public Distributor(final BlockingQueue<byte[]> packets, final Map<Integer, PacketsQueue> responses, final int tcp,
+            final String destination, final int udp, final String address) {
         this.tcp = tcp;
         this.destination = destination;
         this.udp = udp;
@@ -63,7 +62,7 @@ public final class Distributor implements Runnable {
                         DataOutputStream out = new DataOutputStream(target.getOutputStream());
 
                         // lista onde vao estar todos os pedidos desta sessão deste cliente
-                        BlockingQueue<Packet> queue = new LinkedBlockingQueue<>();
+                        PacketsQueue queue = new PacketsQueue();
 
                         // thread que vai escrever para o servidor
                         new Thread(new ConnectionWriter(queue, out)).start();

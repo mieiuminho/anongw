@@ -2,6 +2,7 @@ package anongw.server;
 
 import anongw.common.Config;
 import anongw.concurrent.Distributor;
+import anongw.concurrent.PacketsQueue;
 import anongw.transport.Packet;
 
 import org.apache.logging.log4j.LogManager;
@@ -40,7 +41,7 @@ public final class AnonGW {
     private BlockingQueue<byte[]> packets;
 
     // mensagens que vêm de volta por udp para o cliente
-    private Map<Integer, BlockingQueue<Packet>> responses;
+    private Map<Integer, PacketsQueue> responses;
 
     private AnonGW() {
     }
@@ -92,7 +93,7 @@ public final class AnonGW {
                         new Thread(new ConnectionReader(Packet.TYPE.REQUEST, id, hostname, client,
                                 peers.get(new Random().nextInt(peers.size())), udp)).start();
 
-                        BlockingQueue<Packet> messages = new LinkedBlockingQueue<>();
+                        PacketsQueue messages = new PacketsQueue();
                         responses.put(id, messages);
                         // Thread que vai escrever para o cliente
                         new Thread(new ConnectionWriter(messages, new DataOutputStream(client.getOutputStream())))
@@ -111,10 +112,6 @@ public final class AnonGW {
 
             @Override
             public void run() {
-                // Socket target = new Socket(destination, tcp);
-                // BufferedReader in = new BufferedReader(new InputStreamReader(target.getInputStream()));
-                // PrintWriter out = new PrintWriter(target.getOutputStream(), true);
-
                 while (true) {
                     try {
                         log.info("(UDP) Waiting for packets...");
