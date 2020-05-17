@@ -1,9 +1,9 @@
 package anongw.server;
 
 import anongw.common.Config;
-
 import anongw.transport.Packet;
 import anongw.util.Converter;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
