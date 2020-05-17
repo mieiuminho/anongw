@@ -1,8 +1,10 @@
 package anongw.concurrent;
 
+import anongw.security.Encryption;
 import anongw.server.ConnectionReader;
 import anongw.server.ConnectionWriter;
 import anongw.transport.Packet;
+import anongw.util.Encoder;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -10,6 +12,10 @@ import org.apache.logging.log4j.Logger;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.SignatureException;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,6 +55,13 @@ public final class Distributor implements Runnable {
                 Packet packet = Packet.decode(this.packets.take());
                 log.debug("received packet = " + packet.toString());
 
+                // verify if the package is really from the gateway host, if not it is discarded
+                if (!Encryption.verify(packet.getSignature(), packet.getContent(),
+                        (PublicKey) Encoder.fromFile("keys/" + packet.getGateway() + ".pub"))) {
+                    log.warn("Discarding fake packet from fake Gateway");
+                    continue;
+                }
+
                 if (packet.getType() == Packet.TYPE.REQUEST) {
                     // Caso em que é a primeira vez que se recebe um pacote deste gateway
                     if (!this.requests.containsKey(packet.getGateway())) {
@@ -80,7 +93,8 @@ public final class Distributor implements Runnable {
                     this.responses.get(packet.getSession()).put(packet);
                 }
 
-            } catch (InterruptedException | IOException | ClassNotFoundException e) {
+            } catch (IOException | InterruptedException | NoSuchAlgorithmException | ClassNotFoundException
+                    | InvalidKeyException | SignatureException e) {
                 log.error(e.getMessage(), e);
             }
         }

@@ -25,32 +25,40 @@ public final class Packet implements Serializable, Comparable<Packet> {
 
     private byte[] content;
 
-    public Packet(final TYPE type, final String gateway, final int session, final int part, final byte[] content) {
+    private String signature;
+
+    public Packet(final TYPE type, final String gateway, final int session, final int part, final byte[] content,
+            final String signature) {
         this.type = type;
         this.gateway = gateway;
         this.session = session;
         this.part = part;
         this.content = content;
+        this.signature = signature;
     }
 
     public TYPE getType() {
-        return type;
+        return this.type;
     }
 
     public String getGateway() {
-        return gateway;
+        return this.gateway;
     }
 
     public int getSession() {
-        return session;
+        return this.session;
     }
 
     public int getPart() {
-        return part;
+        return this.part;
     }
 
     public byte[] getContent() {
-        return content;
+        return this.content;
+    }
+
+    public String getSignature() {
+        return this.signature;
     }
 
     public byte[] encode() throws IOException {

@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -12,6 +13,14 @@ import java.io.Serializable;
 public final class Encoder {
 
     private Encoder() {
+    }
+
+    public static Object fromFile(final String file) throws IOException, ClassNotFoundException {
+        ObjectInputStream stream = new ObjectInputStream(new FileInputStream(file));
+        Object object = stream.readObject();
+        stream.close();
+
+        return object;
     }
 
     public static Object fromByteArray(final byte[] encoded) throws IOException, ClassNotFoundException {
