@@ -3,12 +3,14 @@ package anongw.server;
 import anongw.common.Config;
 import anongw.security.Encryption;
 import anongw.transport.Packet;
-import anongw.util.Converter;
 import anongw.util.Encoder;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -18,6 +20,7 @@ import java.net.Socket;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SignatureException;
 
 /**
@@ -49,8 +52,24 @@ public final class ConnectionReader implements Runnable {
         this.buffer = new byte[Config.BUFFER_SIZE];
     }
 
+    /**
+     *
+     * @return PrivateKey of this gateway
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public PrivateKey getPrivateKey() throws IOException, ClassNotFoundException {
-        return (PrivateKey) Encoder.fromFile("keys/" + this.address + ".key");
+        return (PrivateKey) Encoder.fromFile(Config.KEYS_DIR + this.address + ".key");
+    }
+
+    /**
+     *
+     * @return PublicKey of the destination gateway
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    public PublicKey getPublicKey() throws IOException, ClassNotFoundException {
+        return (PublicKey) Encoder.fromFile(Config.KEYS_DIR + this.peer + ".pub");
     }
 
     @Override
@@ -64,13 +83,13 @@ public final class ConnectionReader implements Runnable {
             int part = 1;
 
             while (this.in.read(buffer, 0, buffer.length) != -1) {
-                byte[] packet = new Packet(this.type, this.address, this.id, part++, buffer,
-                        Encryption.sign(buffer, this.getPrivateKey())).encode();
-                log.debug("Sending data: " + Converter.fromBytes(buffer).toString());
+                byte[] packet = new Packet(this.type, this.address, this.id, part++,
+                        Encryption.encrypt(this.getPublicKey(), buffer), Encryption.sign(buffer, this.getPrivateKey()))
+                                .encode();
                 this.out.send(new DatagramPacket(packet, packet.length, InetAddress.getByName(peer), this.udp));
             }
         } catch (IOException | ClassNotFoundException | NoSuchAlgorithmException | InvalidKeyException
-                | SignatureException e) {
+                | SignatureException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException e) {
             log.error(e.getMessage(), e);
         }
 

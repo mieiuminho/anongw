@@ -1,5 +1,6 @@
 package anongw.concurrent;
 
+import anongw.common.Config;
 import anongw.security.Encryption;
 import anongw.server.ConnectionReader;
 import anongw.server.ConnectionWriter;
@@ -57,7 +58,7 @@ public final class Distributor implements Runnable {
 
                 // verify if the package is really from the gateway host, if not it is discarded
                 if (!Encryption.verify(packet.getSignature(), packet.getContent(),
-                        (PublicKey) Encoder.fromFile("keys/" + packet.getGateway() + ".pub"))) {
+                        (PublicKey) Encoder.fromFile(Config.KEYS_DIR + packet.getGateway() + ".pub"))) {
                     log.warn("Discarding fake packet from fake Gateway");
                     continue;
                 }
@@ -78,7 +79,7 @@ public final class Distributor implements Runnable {
                         PacketsQueue queue = new PacketsQueue();
 
                         // thread que vai escrever para o servidor
-                        new Thread(new ConnectionWriter(queue, out)).start();
+                        new Thread(new ConnectionWriter(this.address, queue, out)).start();
 
                         // thread que vai ler do servidor e enviar os pacotes de volta para o cliente
                         new Thread(new ConnectionReader(Packet.TYPE.RESPONSE, packet.getSession(), this.address, target,

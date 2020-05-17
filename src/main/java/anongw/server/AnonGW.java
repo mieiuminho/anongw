@@ -96,8 +96,8 @@ public final class AnonGW {
                         PacketsQueue messages = new PacketsQueue();
                         responses.put(id, messages);
                         // Thread que vai escrever para o cliente
-                        new Thread(new ConnectionWriter(messages, new DataOutputStream(client.getOutputStream())))
-                                .start();
+                        new Thread(new ConnectionWriter(hostname, messages,
+                                new DataOutputStream(client.getOutputStream()))).start();
                     } catch (IOException e) {
                         log.error(e.getMessage(), e);
                     }
