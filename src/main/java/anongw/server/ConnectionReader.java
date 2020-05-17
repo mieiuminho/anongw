@@ -83,9 +83,9 @@ public final class ConnectionReader implements Runnable {
             int part = 1;
 
             while (this.in.read(buffer, 0, buffer.length) != -1) {
-                byte[] packet = new Packet(this.type, this.address, this.id, part++,
-                        Encryption.encrypt(this.getPublicKey(), buffer), Encryption.sign(buffer, this.getPrivateKey()))
-                                .encode();
+                byte[] encrypted = Encryption.encrypt(this.getPublicKey(), buffer);
+                byte[] packet = new Packet(this.type, this.address, this.id, part++, encrypted,
+                        Encryption.sign(encrypted, this.getPrivateKey())).encode();
                 this.out.send(new DatagramPacket(packet, packet.length, InetAddress.getByName(peer), this.udp));
             }
         } catch (IOException | ClassNotFoundException | NoSuchAlgorithmException | InvalidKeyException
