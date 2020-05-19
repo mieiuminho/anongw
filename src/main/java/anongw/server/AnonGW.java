@@ -10,15 +10,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.net.*;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -42,6 +35,12 @@ public final class AnonGW {
 
     // mensagens que vêm de volta por udp para o cliente
     private Map<Integer, PacketsQueue> responses;
+    // acks received
+    private Map<Integer, Set<Integer>> acks;
+    // packets sent but waiting for the ack from destination
+    private Map<Integer, Map<Integer, Packet>> pendingAcks;
+    //
+    private Map<Integer, Map<Integer, String>> destinations;
 
     private AnonGW() {
     }
@@ -55,15 +54,19 @@ public final class AnonGW {
         this.peers = peers;
         this.packets = new LinkedBlockingQueue<>();
         this.responses = new ConcurrentHashMap<>();
+        this.acks = new ConcurrentHashMap<>();
+        this.pendingAcks = new ConcurrentHashMap<>();
+        this.destinations = new ConcurrentHashMap<>();
     }
 
     public void startUp() {
         log.debug("Working Directory " + System.getProperty("user.dir"));
 
-        new Thread(new Distributor(this.packets, this.responses, this.tcp, this.destination, this.udp, this.hostname))
-                .start();
+        new Thread(new Distributor(this.packets, this.responses, this.acks, this.pendingAcks, this.destinations,
+                this.tcp, this.destination, this.udp, this.hostname)).start();
 
         try {
+            new Thread(new LostPacketController(this.udp, this.pendingAcks, this.destinations, this.acks)).start();
             this.connection = new ServerSocket();
             this.connection.bind(new InetSocketAddress(this.hostname, this.tcp));
             log.info("Server (TCP) is up at " + this.connection.getLocalSocketAddress());
@@ -91,7 +94,8 @@ public final class AnonGW {
 
                         // Thread que vai ler do cliente
                         new Thread(new ConnectionReader(Packet.TYPE.REQUEST, id, hostname, client,
-                                peers.get(new Random().nextInt(peers.size())), udp)).start();
+                                peers.get(new Random().nextInt(peers.size())), udp, pendingAcks, destinations, acks))
+                                        .start();
 
                         PacketsQueue messages = new PacketsQueue();
                         responses.put(id, messages);
@@ -117,7 +121,6 @@ public final class AnonGW {
                         log.info("(UDP) Waiting for packets...");
                         tunnel.receive(new DatagramPacket(this.buffer, this.buffer.length));
                         packets.put(this.buffer);
-
                         // Clear the buffer after every message.
                         this.buffer = new byte[Config.DATAGRAM_MAX_SIZE];
                     } catch (IOException | InterruptedException e) {

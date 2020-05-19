@@ -14,7 +14,7 @@ public final class Packet implements Serializable, Comparable<Packet> {
     }
 
     public enum TYPE implements Serializable {
-        REQUEST, RESPONSE
+        REQUEST, RESPONSE, ACK
     };
 
     private TYPE type;

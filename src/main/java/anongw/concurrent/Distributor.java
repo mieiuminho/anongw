@@ -12,15 +12,20 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.Socket;
+import java.net.*;
+import java.security.SecureRandom;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.PrivateKey;
 import java.security.SignatureException;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 
+@SuppressWarnings({"checkstyle:ParameterNumber", "checkstyle:AvoidStarImport"})
 public final class Distributor implements Runnable {
     private static Logger log = LogManager.getLogger(Distributor.class);
 
@@ -37,9 +42,17 @@ public final class Distributor implements Runnable {
 
     // sessions -> [parts] (pacotes de volta ao cliente)
     private Map<Integer, PacketsQueue> responses;
+    // acks já recebidos
+    private Map<Integer, Set<Integer>> acks;
+    // Packets pending ack
+    private Map<Integer, Map<Integer, Packet>> pendingacks;
 
-    public Distributor(final BlockingQueue<byte[]> packets, final Map<Integer, PacketsQueue> responses, final int tcp,
-            final String destination, final int udp, final String address) {
+    private Map<Integer, Map<Integer, String>> peers;
+
+    public Distributor(final BlockingQueue<byte[]> packets, final Map<Integer, PacketsQueue> responses,
+            final Map<Integer, Set<Integer>> acks, final Map<Integer, Map<Integer, Packet>> pendingacks,
+            final Map<Integer, Map<Integer, String>> peers, final int tcp, final String destination, final int udp,
+            final String address) {
         this.tcp = tcp;
         this.destination = destination;
         this.udp = udp;
@@ -47,6 +60,27 @@ public final class Distributor implements Runnable {
         this.packets = packets;
         this.requests = new ConcurrentHashMap<>();
         this.responses = responses;
+        this.acks = acks;
+        this.pendingacks = pendingacks;
+        this.peers = peers;
+    }
+
+    private void sendACK(final Packet packet) {
+        try {
+            DatagramSocket tunnel = new DatagramSocket();
+            PrivateKey key = (PrivateKey) Encoder.fromFile(Config.KEYS_DIR + this.address + ".key");
+            byte[] content = new byte[1];
+            new SecureRandom().nextBytes(content);
+
+            byte[] ack = new Packet(Packet.TYPE.ACK, this.address, packet.getSession(), packet.getPart(), content,
+                    Encryption.sign(content, key)).encode();
+
+            tunnel.send(new DatagramPacket(ack, ack.length, InetAddress.getByName(packet.getGateway()), this.udp));
+
+            tunnel.close();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     @Override
@@ -64,6 +98,7 @@ public final class Distributor implements Runnable {
                 }
 
                 if (packet.getType() == Packet.TYPE.REQUEST) {
+
                     // Caso em que é a primeira vez que se recebe um pacote deste gateway
                     if (!this.requests.containsKey(packet.getGateway())) {
                         this.requests.put(packet.getGateway(), new ConcurrentHashMap<>());
@@ -83,15 +118,28 @@ public final class Distributor implements Runnable {
 
                         // thread que vai ler do servidor e enviar os pacotes de volta para o cliente
                         new Thread(new ConnectionReader(Packet.TYPE.RESPONSE, packet.getSession(), this.address, target,
-                                packet.getGateway(), this.udp)).start();
+                                packet.getGateway(), this.udp, this.pendingacks, this.peers, this.acks)).start();
 
                         // adicionar a lista ao map do distributor
                         this.requests.get(packet.getGateway()).put(packet.getSession(), queue);
                     }
 
                     this.requests.get(packet.getGateway()).get(packet.getSession()).put(packet);
+                    sendACK(packet);
+
                 } else if (packet.getType() == Packet.TYPE.RESPONSE) {
                     this.responses.get(packet.getSession()).put(packet);
+                    sendACK(packet);
+
+                } else if (packet.getType() == Packet.TYPE.ACK) {
+                    int session = packet.getSession();
+                    int part = packet.getPart();
+
+                    if (!this.acks.containsKey(session)) {
+                        this.acks.put(session, new HashSet<>());
+                    }
+                    this.acks.get(session).add(part);
+
                 }
 
             } catch (IOException | InterruptedException | NoSuchAlgorithmException | ClassNotFoundException

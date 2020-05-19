@@ -22,10 +22,14 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SignatureException;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Reads from a TCP connection and sends the result and sends it through a UDP socket
  */
+
 public final class ConnectionReader implements Runnable {
     private static Logger log = LogManager.getLogger(ConnectionReader.class);
 
@@ -41,8 +45,14 @@ public final class ConnectionReader implements Runnable {
     private DatagramSocket out;
     private byte[] buffer;
 
+    private Map<Integer, Map<Integer, Packet>> pendingAcks;
+    private Map<Integer, Map<Integer, String>> peers;
+    private Map<Integer, Set<Integer>> acks;
+
+    @SuppressWarnings("checkstyle:ParameterNumber")
     public ConnectionReader(final Packet.TYPE type, final int id, final String address, final Socket client,
-            final String peer, final int udp) {
+            final String peer, final int udp, final Map<Integer, Map<Integer, Packet>> pendingAcks,
+            final Map<Integer, Map<Integer, String>> peers, final Map<Integer, Set<Integer>> acks) {
         this.type = type;
         this.id = id;
         this.address = address;
@@ -50,6 +60,9 @@ public final class ConnectionReader implements Runnable {
         this.udp = udp;
         this.peer = peer;
         this.buffer = new byte[Config.BUFFER_SIZE];
+        this.pendingAcks = pendingAcks;
+        this.peers = peers;
+        this.acks = acks;
     }
 
     /**
@@ -84,9 +97,21 @@ public final class ConnectionReader implements Runnable {
 
             while (this.in.read(buffer, 0, buffer.length) != -1) {
                 byte[] encrypted = Encryption.encrypt(this.getPublicKey(), buffer);
-                byte[] packet = new Packet(this.type, this.address, this.id, part++, encrypted,
-                        Encryption.sign(encrypted, this.getPrivateKey())).encode();
-                this.out.send(new DatagramPacket(packet, packet.length, InetAddress.getByName(peer), this.udp));
+                Packet packet = new Packet(this.type, this.address, this.id, part++, encrypted,
+                        Encryption.sign(encrypted, this.getPrivateKey()));
+
+                byte[] packetBytes = packet.encode();
+                this.out.send(
+                        new DatagramPacket(packetBytes, packetBytes.length, InetAddress.getByName(peer), this.udp));
+
+                if (!this.pendingAcks.containsKey(this.id)) {
+                    this.pendingAcks.put(this.id, new ConcurrentHashMap<>());
+                    this.peers.put(this.id, new ConcurrentHashMap<>());
+                }
+
+                this.pendingAcks.get(this.id).put(part - 1, packet);
+                this.peers.get(this.id).put(part - 1, peer);
+
             }
         } catch (IOException | ClassNotFoundException | NoSuchAlgorithmException | InvalidKeyException
                 | SignatureException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException e) {
