@@ -12,8 +12,7 @@ import java.io.Serializable;
 
 public final class Encoder {
 
-    private Encoder() {
-    }
+    private Encoder() {}
 
     public static Object fromFile(final String file) throws IOException, ClassNotFoundException {
         ObjectInputStream stream = new ObjectInputStream(new FileInputStream(file));
@@ -23,8 +22,10 @@ public final class Encoder {
         return object;
     }
 
-    public static Object fromByteArray(final byte[] encoded) throws IOException, ClassNotFoundException {
-        ObjectInputStream stream = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(encoded)));
+    public static Object fromByteArray(final byte[] encoded)
+            throws IOException, ClassNotFoundException {
+        ObjectInputStream stream =
+                new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(encoded)));
         Object object = stream.readObject();
         stream.close();
 

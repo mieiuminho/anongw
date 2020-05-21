@@ -2,8 +2,7 @@ package anongw.util;
 
 public final class Converter {
 
-    private Converter() {
-    }
+    private Converter() {}
 
     /**
      * A utility method to convert the byte array data into a string representation.
@@ -12,8 +11,7 @@ public final class Converter {
      * @return null if the array is null
      */
     public static StringBuilder fromBytes(final byte[] a) {
-        if (a == null)
-            return null;
+        if (a == null) return null;
 
         StringBuilder ret = new StringBuilder();
 

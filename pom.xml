@@ -96,20 +96,20 @@
                 <version>3.8.2</version>
             </plugin>
             <plugin>
-                <groupId>net.revelc.code.formatter</groupId>
-                <artifactId>formatter-maven-plugin</artifactId>
-                <version>2.10.0</version>
-                <configuration>
-                    <encoding>${project.encoding}</encoding>
-                    <configFile>.formatter.xml</configFile>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>3.0.2</version>
                 <configuration>
                     <encoding>${project.encoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.coveo</groupId>
+                <artifactId>fmt-maven-plugin</artifactId>
+                <version>2.9</version>
+                <configuration>
+                    <verbose>true</verbose>
+                    <style>aosp</style>
                 </configuration>
             </plugin>
             <plugin>

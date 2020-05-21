@@ -2,7 +2,6 @@ package anongw.transport;
 
 import anongw.util.Converter;
 import anongw.util.Encoder;
-
 import java.io.IOException;
 import java.io.Serializable;
 
@@ -14,7 +13,9 @@ public final class Packet implements Serializable, Comparable<Packet> {
     }
 
     public enum TYPE implements Serializable {
-        REQUEST, RESPONSE, ACK
+        REQUEST,
+        RESPONSE,
+        ACK
     };
 
     private TYPE type;
@@ -27,7 +28,12 @@ public final class Packet implements Serializable, Comparable<Packet> {
 
     private String signature;
 
-    public Packet(final TYPE type, final String gateway, final int session, final int part, final byte[] content,
+    public Packet(
+            final TYPE type,
+            final String gateway,
+            final int session,
+            final int part,
+            final byte[] content,
             final String signature) {
         this.type = type;
         this.gateway = gateway;
@@ -71,7 +77,18 @@ public final class Packet implements Serializable, Comparable<Packet> {
 
     @Override
     public String toString() {
-        return "Packet{" + "type=" + type + ", gateway='" + gateway + "'" + ", session=" + session + ", part=" + part
-                + ", content=\n" + Converter.fromBytes(content).toString() + "\n}";
+        return "Packet{"
+                + "type="
+                + type
+                + ", gateway='"
+                + gateway
+                + "'"
+                + ", session="
+                + session
+                + ", part="
+                + part
+                + ", content=\n"
+                + Converter.fromBytes(content).toString()
+                + "\n}";
     }
 }

@@ -4,16 +4,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.security.KeyPair;
-import java.security.PublicKey;
-import java.security.PrivateKey;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.util.Collection;
 
 public final class KeysUtils {
 
     private static KeyPairGenerator keyGen;
+
     @SuppressWarnings("checkstyle:MagicNumber")
     private static final int KEY_SIZE = 2048;
 
@@ -27,10 +28,10 @@ public final class KeysUtils {
         }
     }
 
-    private KeysUtils() {
-    }
+    private KeysUtils() {}
 
-    private static void toFile(final String name, final String extension, final Object obj) throws IOException {
+    private static void toFile(final String name, final String extension, final Object obj)
+            throws IOException {
         String fileName = name + "." + extension;
         FileOutputStream fout = new FileOutputStream(fileName);
         ObjectOutputStream oout = new ObjectOutputStream(fout);

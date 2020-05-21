@@ -1,7 +1,6 @@
 package anongw.concurrent;
 
 import anongw.transport.Packet;
-
 import java.util.concurrent.PriorityBlockingQueue;
 
 public final class PacketsQueue {
@@ -14,8 +13,7 @@ public final class PacketsQueue {
     }
 
     public synchronized Packet take() throws InterruptedException {
-        if (this.packets.peek() == null || this.packets.peek().getPart() != next)
-            this.wait();
+        if (this.packets.peek() == null || this.packets.peek().getPart() != next) this.wait();
         this.next++;
         return this.packets.take();
     }

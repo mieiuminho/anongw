@@ -6,47 +6,37 @@ import anongw.server.ConnectionReader;
 import anongw.server.ConnectionWriter;
 import anongw.transport.Packet;
 import anongw.util.Encoder;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.security.SecureRandom;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
 import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.SignatureException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public final class Distributor implements Runnable {
     private static Logger log = LogManager.getLogger(Distributor.class);
 
-    /**
-     * TCP port
-     */
+    /** TCP port */
     private int tcp;
-    /**
-     * Target Server Address
-     */
+    /** Target Server Address */
     private String destination;
 
-    /**
-     * UDP port
-     */
+    /** UDP port */
     private int udp;
-    /**
-     * Gateway address
-     */
+    /** Gateway address */
     private String address;
 
     private BlockingQueue<byte[]> packets;
@@ -149,10 +139,19 @@ public final class Distributor implements Runnable {
             byte[] content = new byte[1];
             new SecureRandom().nextBytes(content);
 
-            byte[] ack = new Packet(Packet.TYPE.ACK, this.address, packet.getSession(), packet.getPart(), content,
-                    Encryption.sign(content, key)).encode();
+            byte[] ack =
+                    new Packet(
+                                    Packet.TYPE.ACK,
+                                    this.address,
+                                    packet.getSession(),
+                                    packet.getPart(),
+                                    content,
+                                    Encryption.sign(content, key))
+                            .encode();
 
-            tunnel.send(new DatagramPacket(ack, ack.length, InetAddress.getByName(packet.getGateway()), this.udp));
+            tunnel.send(
+                    new DatagramPacket(
+                            ack, ack.length, InetAddress.getByName(packet.getGateway()), this.udp));
 
             tunnel.close();
         } catch (Exception e) {
@@ -168,22 +167,28 @@ public final class Distributor implements Runnable {
                 log.debug("received packet = " + packet.toString());
 
                 // verify if the package is really from the gateway host, if not it is discarded
-                if (!Encryption.verify(packet.getSignature(), packet.getContent(),
-                        (PublicKey) Encoder.fromFile(Config.KEYS_DIR + packet.getGateway() + ".pub"))) {
+                if (!Encryption.verify(
+                        packet.getSignature(),
+                        packet.getContent(),
+                        (PublicKey)
+                                Encoder.fromFile(Config.KEYS_DIR + packet.getGateway() + ".pub"))) {
                     log.warn("Discarding fake packet from fake Gateway");
                     continue;
                 }
 
                 switch (packet.getType()) {
-                    case REQUEST :
+                    case REQUEST:
                         // Caso em que é a primeira vez que se recebe um pacote deste gateway
                         if (!this.requests.containsKey(packet.getGateway())) {
                             this.requests.put(packet.getGateway(), new ConcurrentHashMap<>());
                         }
 
-                        // Caso em que é a primeira vez que se recebe um pacote deste gateway com aquele número de
+                        // Caso em que é a primeira vez que se recebe um pacote deste gateway com
+                        // aquele número de
                         // sessão
-                        if (!this.requests.get(packet.getGateway()).containsKey(packet.getSession())) {
+                        if (!this.requests
+                                .get(packet.getGateway())
+                                .containsKey(packet.getSession())) {
                             // ligação ao servidor
                             Socket target = new Socket(this.destination, this.tcp);
                             DataOutputStream out = new DataOutputStream(target.getOutputStream());
@@ -194,10 +199,20 @@ public final class Distributor implements Runnable {
                             // thread que vai escrever para o servidor
                             new Thread(new ConnectionWriter(this.address, queue, out)).start();
 
-                            // thread que vai ler do servidor e enviar os pacotes de volta para o cliente
-                            new Thread(new ConnectionReader(Packet.TYPE.RESPONSE, packet.getSession(), this.address,
-                                    target, packet.getGateway(), this.udp, this.pendingacks, this.peers, this.acks))
-                                            .start();
+                            // thread que vai ler do servidor e enviar os pacotes de volta para o
+                            // cliente
+                            new Thread(
+                                            new ConnectionReader(
+                                                    Packet.TYPE.RESPONSE,
+                                                    packet.getSession(),
+                                                    this.address,
+                                                    target,
+                                                    packet.getGateway(),
+                                                    this.udp,
+                                                    this.pendingacks,
+                                                    this.peers,
+                                                    this.acks))
+                                    .start();
 
                             // adicionar a lista ao map do distributor
                             this.requests.get(packet.getGateway()).put(packet.getSession(), queue);
@@ -207,23 +222,27 @@ public final class Distributor implements Runnable {
                         sendACK(packet);
                         break;
 
-                    case RESPONSE :
+                    case RESPONSE:
                         this.responses.get(packet.getSession()).put(packet);
                         sendACK(packet);
                         break;
 
-                    case ACK :
+                    case ACK:
                         if (!this.acks.containsKey(packet.getSession())) {
                             this.acks.put(packet.getSession(), new HashSet<>());
                         }
 
                         this.acks.get(packet.getSession()).add(packet.getPart());
                         break;
-                    default :
+                    default:
                         log.error("Invalid packet type: " + packet.getType());
                 }
-            } catch (IOException | InterruptedException | NoSuchAlgorithmException | ClassNotFoundException
-                    | InvalidKeyException | SignatureException e) {
+            } catch (IOException
+                    | InterruptedException
+                    | NoSuchAlgorithmException
+                    | ClassNotFoundException
+                    | InvalidKeyException
+                    | SignatureException e) {
                 log.error(e.getMessage(), e);
             }
         }

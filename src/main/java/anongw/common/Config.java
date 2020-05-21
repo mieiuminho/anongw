@@ -6,6 +6,5 @@ public final class Config {
     public static final String KEYS_DIR = "src/main/resources/keys/";
     public static final int TIMEOUT = 1000;
 
-    private Config() {
-    }
+    private Config() {}
 }

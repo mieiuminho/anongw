@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-mvn formatter:format
+mvn fmt:format
 
 shfmt -l -w -i 2 .
 

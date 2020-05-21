@@ -8,8 +8,7 @@ import java.util.List;
 
 public final class Parser {
 
-    private Parser() {
-    }
+    private Parser() {}
 
     /**
      * Function that reads all lines from a file.
