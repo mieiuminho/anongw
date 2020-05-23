@@ -1,7 +1,6 @@
 package anongw.util;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,10 +21,10 @@ public final class Parser {
         BufferedReader inFile;
         String linha;
 
-            inFile = new BufferedReader(new FileReader(file));
-            while ((linha = inFile.readLine()) != null) {
-                linhas.add(linha);
-            }
+        inFile = new BufferedReader(new FileReader(file));
+        while ((linha = inFile.readLine()) != null) {
+            linhas.add(linha);
+        }
 
         return linhas;
     }

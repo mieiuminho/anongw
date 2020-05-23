@@ -3,6 +3,7 @@ package anongw.server;
 import anongw.common.Config;
 import anongw.security.Encryption;
 import anongw.transport.Packet;
+import anongw.util.Converter;
 import anongw.util.Encoder;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -98,7 +99,6 @@ public final class ConnectionReader implements Runnable {
             this.out = new DatagramSocket();
 
             int part = 1;
-
             while (this.in.read(buffer, 0, buffer.length) != -1) {
                 byte[] encrypted = Encryption.encrypt(this.getPublicKey(), buffer);
                 Packet packet =
@@ -106,11 +106,11 @@ public final class ConnectionReader implements Runnable {
                                 this.type,
                                 this.address,
                                 this.id,
-                                part++,
+                                part,
                                 encrypted,
                                 Encryption.sign(encrypted, this.getPrivateKey()));
 
-                byte[] packetBytes = packet.encode();
+                byte[] packetBytes = Converter.compress(packet.encode());
                 this.out.send(
                         new DatagramPacket(
                                 packetBytes,
@@ -123,8 +123,10 @@ public final class ConnectionReader implements Runnable {
                     this.peers.put(this.id, new ConcurrentHashMap<>());
                 }
 
-                this.pendingAcks.get(this.id).put(part - 1, packet);
-                this.peers.get(this.id).put(part - 1, peer);
+                this.pendingAcks.get(this.id).put(part, packet);
+                this.peers.get(this.id).put(part, peer);
+
+                part++;
             }
         } catch (IOException
                 | ClassNotFoundException

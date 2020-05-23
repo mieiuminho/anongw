@@ -2,6 +2,7 @@ package anongw.server;
 
 import anongw.common.Config;
 import anongw.transport.Packet;
+import anongw.util.Converter;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -36,7 +37,7 @@ public final class LostPacketController implements Runnable {
 
     private void resend(final Packet p) throws IOException {
         String peer = this.peers.get(p.getSession()).get(p.getPart());
-        byte[] packetBytes = p.encode();
+        byte[] packetBytes = Converter.compress(p.encode());
         this.out.send(
                 new DatagramPacket(
                         packetBytes, packetBytes.length, InetAddress.getByName(peer), this.udp));

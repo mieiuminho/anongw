@@ -4,7 +4,6 @@ import anongw.server.AnonGW;
 import anongw.util.Parser;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-
 import java.io.IOException;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;

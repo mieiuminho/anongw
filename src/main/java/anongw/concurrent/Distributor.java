@@ -5,6 +5,7 @@ import anongw.security.Encryption;
 import anongw.server.ConnectionReader;
 import anongw.server.ConnectionWriter;
 import anongw.transport.Packet;
+import anongw.util.Converter;
 import anongw.util.Encoder;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -23,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.zip.DataFormatException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -140,14 +142,15 @@ public final class Distributor implements Runnable {
             new SecureRandom().nextBytes(content);
 
             byte[] ack =
-                    new Packet(
-                                    Packet.TYPE.ACK,
-                                    this.address,
-                                    packet.getSession(),
-                                    packet.getPart(),
-                                    content,
-                                    Encryption.sign(content, key))
-                            .encode();
+                    Converter.compress(
+                            new Packet(
+                                            Packet.TYPE.ACK,
+                                            this.address,
+                                            packet.getSession(),
+                                            packet.getPart(),
+                                            content,
+                                            Encryption.sign(content, key))
+                                    .encode());
 
             tunnel.send(
                     new DatagramPacket(
@@ -163,7 +166,7 @@ public final class Distributor implements Runnable {
     public void run() {
         while (true) {
             try {
-                Packet packet = Packet.decode(this.packets.take());
+                Packet packet = Packet.decode(Converter.decompress(this.packets.take()));
                 log.debug("received packet = " + packet.toString());
 
                 // verify if the package is really from the gateway host, if not it is discarded
@@ -242,7 +245,8 @@ public final class Distributor implements Runnable {
                     | NoSuchAlgorithmException
                     | ClassNotFoundException
                     | InvalidKeyException
-                    | SignatureException e) {
+                    | SignatureException
+                    | DataFormatException e) {
                 log.error(e.getMessage(), e);
             }
         }
