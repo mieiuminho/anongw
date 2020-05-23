@@ -1,6 +1,7 @@
 package anongw.util;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,19 +17,15 @@ public final class Parser {
      * @param file from where should read
      * @return List of Strings
      */
-    public static List<String> readFile(final String file) {
+    public static List<String> readFile(final String file) throws IOException {
         List<String> linhas = new ArrayList<>();
         BufferedReader inFile;
         String linha;
 
-        try {
             inFile = new BufferedReader(new FileReader(file));
             while ((linha = inFile.readLine()) != null) {
                 linhas.add(linha);
             }
-        } catch (IOException exc) {
-            System.out.println(exc);
-        }
 
         return linhas;
     }

@@ -4,6 +4,8 @@ import anongw.server.AnonGW;
 import anongw.util.Parser;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+
+import java.io.IOException;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,8 +63,12 @@ public final class App {
     }
 
     public void welcome() {
-        for (String line : Parser.readFile("src/main/resources/art/logo.ascii")) {
-            System.out.println(line);
+        try {
+            for (String line : Parser.readFile("src/main/resources/art/logo.ascii")) {
+                System.out.println(line);
+            }
+        } catch (IOException e) {
+            log.warn(e.getMessage(), e);
         }
     }
 }

@@ -7,11 +7,6 @@ import java.io.Serializable;
 
 public final class Packet implements Serializable, Comparable<Packet> {
 
-    @Override
-    public int compareTo(final Packet packet) {
-        return Integer.compare(this.getPart(), packet.getPart());
-    }
-
     public enum TYPE implements Serializable {
         REQUEST,
         RESPONSE,
@@ -76,6 +71,11 @@ public final class Packet implements Serializable, Comparable<Packet> {
     }
 
     @Override
+    public int compareTo(final Packet packet) {
+        return Integer.compare(this.getPart(), packet.getPart());
+    }
+
+    @Override
     public String toString() {
         return "Packet{"
                 + "type="
@@ -88,7 +88,9 @@ public final class Packet implements Serializable, Comparable<Packet> {
                 + ", part="
                 + part
                 + ", content=\n"
-                + Converter.fromBytes(content).toString()
+                + Converter.fromBytes(content)
+                + ", signature="
+                + signature
                 + "\n}";
     }
 }
